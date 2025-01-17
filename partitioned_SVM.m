@@ -32,10 +32,10 @@ SETUP OF FEATURE VECTOR:
 
 clear all; 
 
-load("daub2_vectors.mat");
+load("haar_vectors.mat");
 
 % Separate by Mag Level
-[M,N] = size(daub2_vectors);
+[M,N] = size(haar_vectors);
 
 % Define number of patients - 82
 num_patients = 82;
@@ -48,23 +48,23 @@ X40  = zeros(1,N); d = 1;
 
 % This sorts the labeled vectors by magnification factor
 for i = 1:M
-    if daub2_vectors(i,N-2) == 1
-        X100(a,:) = daub2_vectors(i,:);
+    if haar_vectors(i,N-2) == 1
+        X100(a,:) = haar_vectors(i,:);
         a = a + 1;
     end
 
-    if daub2_vectors(i,N-2) == 2
-        X200(b,:) = daub2_vectors(i,:);
+    if haar_vectors(i,N-2) == 2
+        X200(b,:) = haar_vectors(i,:);
         b = b + 1;
     end
 
-    if daub2_vectors(i,N-2) == 3
-        X400(c,:) = daub2_vectors(i,:);
+    if haar_vectors(i,N-2) == 3
+        X400(c,:) = haar_vectors(i,:);
         c = c + 1;
     end
 
-    if daub2_vectors(i,N-2) == 4
-        X40(d,:) = daub2_vectors(i,:);
+    if haar_vectors(i,N-2) == 4
+        X40(d,:) = haar_vectors(i,:);
         d = d + 1;
     end
 end
@@ -131,9 +131,9 @@ FN100 = 0;
 for i = 1:total_count100
     if ((result_100(i,1) == 1) && (test_patient_labels_100(i,1) == 1))
         TP100 = TP100 + 1;
-    elseif ((result_100(i,1) == 1) && (test_patient_labels_100(i,1) == -1))
-        FN100 = FN100 + 1;
     elseif ((result_100(i,1) == -1) && (test_patient_labels_100(i,1) == 1))
+        FN100 = FN100 + 1;
+    elseif ((result_100(i,1) == 1) && (test_patient_labels_100(i,1) == -1))
         FP100 = FP100 + 1;
     elseif ((result_100(i,1) == -1) && (test_patient_labels_100(i,1) == -1))
         TN100 = TN100 + 1;
@@ -193,9 +193,9 @@ FN200 = 0;
 for i = 1:total_count200
     if ((result_200(i,1) == 1) && (test_patient_labels_200(i,1) == 1))
         TP200 = TP200 + 1;
-    elseif ((result_200(i,1) == 1) && (test_patient_labels_200(i,1) == -1))
-        FN200 = FN200 + 1;
     elseif ((result_200(i,1) == -1) && (test_patient_labels_200(i,1) == 1))
+        FN200 = FN200 + 1;
+    elseif ((result_200(i,1) == 1) && (test_patient_labels_200(i,1) == -1))
         FP200 = FP200 + 1;
     elseif ((result_200(i,1) == -1) && (test_patient_labels_200(i,1) == -1))
         TN200 = TN200 + 1;
@@ -245,7 +245,7 @@ result_400 = predict(model_400, test_patient_features_400);
 
 % Get Total Count
 [total_count400,~] = size(result_400);
-
+%%
 TP400 = 0;
 TN400 = 0;
 FP400 = 0;
@@ -255,9 +255,9 @@ FN400 = 0;
 for i = 1:total_count400
     if ((result_400(i,1) == 1) && (test_patient_labels_400(i,1) == 1))
         TP400 = TP400 + 1;
-    elseif ((result_400(i,1) == 1) && (test_patient_labels_400(i,1) == -1))
-        FN400 = FN400 + 1;
     elseif ((result_400(i,1) == -1) && (test_patient_labels_400(i,1) == 1))
+        FN400 = FN400 + 1;
+    elseif ((result_400(i,1) == 1) && (test_patient_labels_400(i,1) == -1))
         FP400 = FP400 + 1;
     elseif ((result_400(i,1) == -1) && (test_patient_labels_400(i,1) == -1))
         TN400 = TN400 + 1;
@@ -307,7 +307,7 @@ result_40 = predict(model_40, test_patient_features_40);
 
 % Get Total Count
 [total_count40,~] = size(result_40);
-
+%%
 TP40 = 0;
 TN40 = 0;
 FP40 = 0;
@@ -317,9 +317,9 @@ FN40 = 0;
 for i = 1:total_count40
     if ((result_40(i,1) == 1) && (test_patient_labels_40(i,1) == 1))
         TP40 = TP40 + 1;
-    elseif ((result_40(i,1) == 1) && (test_patient_labels_40(i,1) == -1))
-        FN40 = FN40 + 1;
     elseif ((result_40(i,1) == -1) && (test_patient_labels_40(i,1) == 1))
+        FN40 = FN40 + 1;
+    elseif ((result_40(i,1) == 1) && (test_patient_labels_40(i,1) == -1))
         FP40 = FP40 + 1;
     elseif ((result_40(i,1) == -1) && (test_patient_labels_40(i,1) == -1))
         TN40 = TN40 + 1;
@@ -334,7 +334,11 @@ precision_40 = TP40/(TP40+FP40);
 
 time_40 = toc;
 
-
+%% Display Results
+accuracy = [accuracy_40,accuracy_100,accuracy_200,accuracy_400];
+recall = [recall_40,recall_100,recall_200,recall_400];
+false_alarm = [false_alarm_40,false_alarm_100,false_alarm_200,false_alarm_400];
+precision = [precision_40,precision_100,precision_200,precision_400];
 
 
 
