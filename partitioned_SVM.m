@@ -5,31 +5,37 @@
 
 %{ 
 
-Important Note Regarding Labeled Vector Set:
+SETUP OF FEATURE VECTOR:
 
-(end - 3) = final feature point
+~ size(feature_vector) = (7909,255)
 
-(end - 2) = magnification label:
+~ 7909 total images, with 252 unique features, and 3 labels
+
+~ 252 = 4 coeffs * 7 levels * 9 statistical parameters
+
+~ (end - 3) = final feature point
+
+~ Label 1: (end - 2) = magnification label:
             k = 1 --> 100x
             k = 2 --> 200x
             k = 3 --> 400x
             k = 4 -->  40x
 
-(end - 1) = patient ID label --> from 1 to 82
+~ Label 2: (end - 1) = patient ID label --> from 1 to 82
 
-(end)     = 0|1, where 
+~ Label 3: (end)     = 0|1, where: 
             
-            0 = benign
-            1 = malignant
+                     -1 = benign
+                      1 = malignant
 
 %}
 
 clear all; 
 
-load("labeled_vectors.mat");
+load("daub2_vectors.mat");
 
 % Separate by Mag Level
-[M,N] = size(labeled_vectors);
+[M,N] = size(daub2_vectors);
 
 % Define number of patients - 82
 num_patients = 82;
@@ -42,23 +48,23 @@ X40  = zeros(1,N); d = 1;
 
 % This sorts the labeled vectors by magnification factor
 for i = 1:M
-    if labeled_vectors(i,N-2) == 1
-        X100(a,:) = labeled_vectors(i,:);
+    if daub2_vectors(i,N-2) == 1
+        X100(a,:) = daub2_vectors(i,:);
         a = a + 1;
     end
 
-    if labeled_vectors(i,N-2) == 2
-        X200(b,:) = labeled_vectors(i,:);
+    if daub2_vectors(i,N-2) == 2
+        X200(b,:) = daub2_vectors(i,:);
         b = b + 1;
     end
 
-    if labeled_vectors(i,N-2) == 3
-        X400(c,:) = labeled_vectors(i,:);
+    if daub2_vectors(i,N-2) == 3
+        X400(c,:) = daub2_vectors(i,:);
         c = c + 1;
     end
 
-    if labeled_vectors(i,N-2) == 4
-        X40(d,:) = labeled_vectors(i,:);
+    if daub2_vectors(i,N-2) == 4
+        X40(d,:) = daub2_vectors(i,:);
         d = d + 1;
     end
 end
@@ -84,43 +90,249 @@ num_test_patients = num_patients - num_train_patients;
 tic;
 
 % Partition the Data
-rand = randperm(num_patients);
-
-% Isolate Feature and Labels
-features_X100 = X100(:,1:end-3);
-class_labels = X100(:,end);
+rand_100 = randperm(num_patients);
 
 % Separate Training and Testing Data
-train_patients_labels = rand(1:num_train_patients);
-test_patients_labels = rand(num_train_patients+1:end);
+train_patients_labels_100 = rand_100(1:num_train_patients);
+test_patients_labels_100 = rand_100(num_train_patients+1:end);
 
 % Partition Data
-train_patient_rows = ismember(X100(:,end-1),train_patients_labels);
-test_patient_rows  = ismember(X100(:,end-1),test_patients_labels);
+train_patient_rows_100 = ismember(X100(:,end-1),train_patients_labels_100);
+test_patient_rows_100  = ismember(X100(:,end-1),test_patients_labels_100);
 
-train_patient = X100(train_patient_rows,:);
-test_patient = X100(test_patient_rows,:);
+train_patient_100 = X100(train_patient_rows_100,:);
+test_patient_100 = X100(test_patient_rows_100,:);
 
 % Preprocess for SVM
-train_patient_features = train_patient(:,1:end-3);
-train_patient_labels = train_patient(:,end);
+train_patient_features_100 = train_patient_100(:,1:end-3);
+train_patient_labels_100 = train_patient_100(:,end);
 
-test_patient_features = test_patient(:,1:end-3);
-test_patient_labels = test_patient(:,end);
+test_patient_features_100 = test_patient_100(:,1:end-3);
+test_patient_labels_100 = test_patient_100(:,end);
 
 % Define Model
-model_100 = fitcsvm(train_patient_features, train_patient_labels, 'KernelFunction', 'linear', ...
+model_100 = fitcsvm(train_patient_features_100, train_patient_labels_100, 'KernelFunction', 'linear', ...
     'OptimizeHyperparameters', 'auto', ...
     'HyperparameterOptimizationOptions', struct('AcquisitionFunctionName', ...
     'expected-improvement-plus', 'ShowPlots', true));
 
 % Test Model
-result = predict(model_100, test_patient_features);
-accuracy_100 = sum(result == test_patient_labels)/length(test_patient_labels)*100;
+result_100 = predict(model_100, test_patient_features_100);
 
-sp = sprintf("Test accuracy = %.2f", accuracy_100);
-disp(sp);
+% Get Total Count
+[total_count100,~] = size(result_100);
+
+TP100 = 0;
+TN100 = 0;
+FP100 = 0;
+FN100 = 0;
+
+% Confusion Matrix
+for i = 1:total_count100
+    if ((result_100(i,1) == 1) && (test_patient_labels_100(i,1) == 1))
+        TP100 = TP100 + 1;
+    elseif ((result_100(i,1) == 1) && (test_patient_labels_100(i,1) == -1))
+        FN100 = FN100 + 1;
+    elseif ((result_100(i,1) == -1) && (test_patient_labels_100(i,1) == 1))
+        FP100 = FP100 + 1;
+    elseif ((result_100(i,1) == -1) && (test_patient_labels_100(i,1) == -1))
+        TN100 = TN100 + 1;
+    end
+end
+
+% Results
+accuracy_100 = (TP100+TN100)/(TP100+TN100+FP100+FN100);
+recall_100 = (TP100)/(TP100+FN100);
+false_alarm_100 = FP100/(TP100+FP100);
+precision_100 = TP100/(TP100+FP100);
+
 time_100 = toc;
+
+%% 200 SVM
+tic;
+
+% Partition the Data
+rand_200 = randperm(num_patients);
+
+% Separate Training and Testing Data
+train_patients_labels_200 = rand_200(1:num_train_patients);
+test_patients_labels_200 = rand_200(num_train_patients+1:end);
+
+% Partition Data
+train_patient_rows_200 = ismember(X200(:,end-1),train_patients_labels_200);
+test_patient_rows_200  = ismember(X200(:,end-1),test_patients_labels_200);
+
+train_patient_200 = X200(train_patient_rows_200,:);
+test_patient_200 = X200(test_patient_rows_200,:);
+
+% Preprocess for SVM
+train_patient_features_200 = train_patient_200(:,1:end-3);
+train_patient_labels_200 = train_patient_200(:,end);
+
+test_patient_features_200 = test_patient_200(:,1:end-3);
+test_patient_labels_200 = test_patient_200(:,end);
+
+% Define Model
+model_200 = fitcsvm(train_patient_features_200, train_patient_labels_200, 'KernelFunction', 'linear', ...
+    'OptimizeHyperparameters', 'auto', ...
+    'HyperparameterOptimizationOptions', struct('AcquisitionFunctionName', ...
+    'expected-improvement-plus', 'ShowPlots', true));
+
+% Test Model
+result_200 = predict(model_200, test_patient_features_200);
+
+% Get Total Count
+[total_count200,~] = size(result_200);
+
+TP200 = 0;
+TN200 = 0;
+FP200 = 0;
+FN200 = 0;
+
+% Confusion Matrix
+for i = 1:total_count200
+    if ((result_200(i,1) == 1) && (test_patient_labels_200(i,1) == 1))
+        TP200 = TP200 + 1;
+    elseif ((result_200(i,1) == 1) && (test_patient_labels_200(i,1) == -1))
+        FN200 = FN200 + 1;
+    elseif ((result_200(i,1) == -1) && (test_patient_labels_200(i,1) == 1))
+        FP200 = FP200 + 1;
+    elseif ((result_200(i,1) == -1) && (test_patient_labels_200(i,1) == -1))
+        TN200 = TN200 + 1;
+    end
+end
+
+% Results
+accuracy_200 = (TP200+TN200)/(TP200+TN200+FP200+FN200);
+recall_200 = (TP200)/(TP200+FN200);
+false_alarm_200 = FP200/(TP200+FP200);
+precision_200 = TP200/(TP200+FP200);
+
+time_200 = toc;
+
+%% 400 SVM
+tic;
+
+% Partition the Data
+rand_400 = randperm(num_patients);
+
+% Separate Training and Testing Data
+train_patients_labels_400 = rand_400(1:num_train_patients);
+test_patients_labels_400 = rand_400(num_train_patients+1:end);
+
+% Partition Data
+train_patient_rows_400 = ismember(X400(:,end-1),train_patients_labels_400);
+test_patient_rows_400  = ismember(X400(:,end-1),test_patients_labels_400);
+
+train_patient_400 = X400(train_patient_rows_400,:);
+test_patient_400 = X400(test_patient_rows_400,:);
+
+% Preprocess for SVM
+train_patient_features_400 = train_patient_400(:,1:end-3);
+train_patient_labels_400 = train_patient_400(:,end);
+
+test_patient_features_400 = test_patient_400(:,1:end-3);
+test_patient_labels_400 = test_patient_400(:,end);
+
+% Define Model
+model_400 = fitcsvm(train_patient_features_400, train_patient_labels_400, 'KernelFunction', 'linear', ...
+    'OptimizeHyperparameters', 'auto', ...
+    'HyperparameterOptimizationOptions', struct('AcquisitionFunctionName', ...
+    'expected-improvement-plus', 'ShowPlots', true));
+
+% Test Model
+result_400 = predict(model_400, test_patient_features_400);
+
+% Get Total Count
+[total_count400,~] = size(result_400);
+
+TP400 = 0;
+TN400 = 0;
+FP400 = 0;
+FN400 = 0;
+
+% Confusion Matrix
+for i = 1:total_count400
+    if ((result_400(i,1) == 1) && (test_patient_labels_400(i,1) == 1))
+        TP400 = TP400 + 1;
+    elseif ((result_400(i,1) == 1) && (test_patient_labels_400(i,1) == -1))
+        FN400 = FN400 + 1;
+    elseif ((result_400(i,1) == -1) && (test_patient_labels_400(i,1) == 1))
+        FP400 = FP400 + 1;
+    elseif ((result_400(i,1) == -1) && (test_patient_labels_400(i,1) == -1))
+        TN400 = TN400 + 1;
+    end
+end
+
+% Results
+accuracy_400 = (TP400+TN400)/(TP400+TN400+FP400+FN400);
+recall_400 = (TP400)/(TP400+FN400);
+false_alarm_400 = FP400/(TP400+FP400);
+precision_400 = TP400/(TP400+FP400);
+
+time_400 = toc;
+
+%% 40X SVM
+tic;
+
+% Partition the Data
+rand_40 = randperm(num_patients);
+
+% Separate Training and Testing Data
+train_patients_labels_40 = rand_40(1:num_train_patients);
+test_patients_labels_40 = rand_40(num_test_patients+1:end);
+
+% Partition Data
+train_patient_rows_40 = ismember(X40(:,end-1),train_patients_labels_40);
+test_patient_rows_40  = ismember(X40(:,end-1),test_patients_labels_40);
+
+train_patient_40 = X40(train_patient_rows_40,:);
+test_patient_40 = X40(test_patient_rows_40,:);
+
+% Preprocess for SVM
+train_patient_features_40 = train_patient_40(:,1:end-3);
+train_patient_labels_40 = train_patient_40(:,end);
+
+test_patient_features_40 = test_patient_40(:,1:end-3);
+test_patient_labels_40 = test_patient_40(:,end);
+
+% Define Model
+model_40 = fitcsvm(train_patient_features_40, train_patient_labels_40, 'KernelFunction', 'linear', ...
+    'OptimizeHyperparameters', 'auto', ...
+    'HyperparameterOptimizationOptions', struct('AcquisitionFunctionName', ...
+    'expected-improvement-plus', 'ShowPlots', true));
+
+% Test Model
+result_40 = predict(model_40, test_patient_features_40);
+
+% Get Total Count
+[total_count40,~] = size(result_40);
+
+TP40 = 0;
+TN40 = 0;
+FP40 = 0;
+FN40 = 0;
+
+% Confusion Matrix
+for i = 1:total_count40
+    if ((result_40(i,1) == 1) && (test_patient_labels_40(i,1) == 1))
+        TP40 = TP40 + 1;
+    elseif ((result_40(i,1) == 1) && (test_patient_labels_40(i,1) == -1))
+        FN40 = FN40 + 1;
+    elseif ((result_40(i,1) == -1) && (test_patient_labels_40(i,1) == 1))
+        FP40 = FP40 + 1;
+    elseif ((result_40(i,1) == -1) && (test_patient_labels_40(i,1) == -1))
+        TN40 = TN40 + 1;
+    end
+end
+
+% Results
+accuracy_40 = (TP40+TN40)/(TP40+TN40+FP40+FN40);
+recall_40 = (TP40)/(TP40+FN40);
+false_alarm_40 = FP40/(TP40+FP40);
+precision_40 = TP40/(TP40+FP40);
+
+time_40 = toc;
 
 
 
