@@ -1,4 +1,4 @@
-function feature_vector = new_feature_vector(image, level, type)    
+function feature_vector =rgb_vector(image, level, type)    
 
     % Output Feature Vector is horizantally concatenated to read as such:
     % [Mean, Var, ... MeanAD];
