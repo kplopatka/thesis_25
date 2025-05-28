@@ -9,7 +9,7 @@ SETUP OF FEATURE VECTOR:
 
 ~ size(feature_vector) = (7909,255)
 
-~ 7909 total images, with 252 unique features, and 3 labels
+~ 7909 total images, with 756 unique features, and 3 labels
 
 ~ 756 = 3 color layers * 4 coeffs * 7 levels * 9 statistical parameters
 
