@@ -3,6 +3,7 @@
 close all;
 clear all;
 
+
 % Initialize Counter for Cells
 benign_counter = 1;
 malignant_counter = 1;
@@ -74,19 +75,19 @@ for i = 1:length(benign_types)
                 
                 % Process the image
                 img = imread(image_path);
-
+            
                 % Single feature vector
-                vector = get_feature_vector(img,7);
-
+                vector = rgb_vector(img,7,'sym4');
+            
                 % Add a magnification label to the vector
                 vector(end-2) = k;
-
+            
                 % Store in Benign Cell
                 benign_vectors{benign_counter,1} = vector;
-
+            
                 % Increment Counter
                 benign_counter = benign_counter + 1;
-
+            
             end
 
             total_single_patient_images = total_single_patient_images + length(image_files);
@@ -109,9 +110,9 @@ for i = 1:length(benign_types)
 
 end
 
-% Benign Label = 0
+% Benign Label = -1
 benign_vectors = cell2mat(benign_vectors);
-benign_vectors(:,end) = 0;
+benign_vectors(:,end) = -1;
 
 benign_time = toc;
 
@@ -159,7 +160,7 @@ for i = 1:length(malignant_types)
                 img = imread(image_path);
 
                 % Single feature vector
-                vector = get_feature_vector(img,7);
+                vector = rgb_vector(img,7,'sym4');
 
                 % Add a magnification label to the vector
                 vector(end-2) = k;
@@ -199,12 +200,12 @@ malignant_vectors(:,end) = 1;
 malignant_time = toc;
 
 %% Post-Processing
-all_feature_vectors = [benign_vectors; malignant_vectors];
+gray_sym4_vector = [malignant_vectors; benign_vectors];
+    
+sum_time = (malignant_time + benign_time)/60;
 
-
-
-
-
+minutes = floor(sum_time)
+sec = (sum_time - minutes)*60
 
 
 
