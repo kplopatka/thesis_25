@@ -7,7 +7,7 @@
 
 SETUP OF FEATURE VECTOR:
 
-~ size(feature_vector) = (7909,255)
+~ size(feature_vector) = (7909,759)
 
 ~ 7909 total images, with 756 unique features, and 3 labels
 
