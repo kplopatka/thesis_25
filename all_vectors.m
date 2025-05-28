@@ -1,4 +1,5 @@
-%% Setup
+%% This file is used to capture ALL of the feature vectors for the dataset
+% The dataset was put within the matlab directory, update for own personal location
 
 close all;
 clear all;
